@@ -213,16 +213,30 @@ interface CurrencyData {
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function hasCurrency(obj: CurrencyData['usd'], key: string): key is keyof CurrencyData['usd'] {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
+
 
 function useCurrencyInfo(currency:string){
 
-    const [data,setData] =useState<CurrencyData | undefined>();
+    const [data,setData] =useState<number | undefined>();
 
     useEffect(()=>{fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${currency}.json`)
     .then((res)=>{res.json()})
+    .then((res:CurrencyData | void) =>{
+        if (res && hasCurrency(res.usd, currency)) {
+            setData((res as CurrencyData).usd[currency]); // Set the data if response is not void
+        } else {
+            console.error("Received undefined response from API.");
+        }
+    })
+    .catch((error) => console.error("Error fetching currency data:", error));
 
     
-},[])
+},[currency])
 return data;}
 
 export default useCurrencyInfo;
